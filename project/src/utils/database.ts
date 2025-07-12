@@ -1,6 +1,6 @@
 import { User, Income, Expense, Bill, SavingGoal } from '../types';
 import { supabase, TABLES } from './supabase';
-
+import { v4 as uuidv4 } from 'uuid';
 
 
 export class DatabaseService {
@@ -234,9 +234,12 @@ export class DatabaseService {
     const currentUser = await this.getCurrentUser();
     if (!currentUser) throw new Error('No authenticated user');
 
+    const id = uuidv4();
+
     const { data, error } = await supabase
       .from(TABLES.INCOMES)
       .insert([{
+        id,
         user_id: currentUser.id,
         amount: income.amount,
         source: income.source,
@@ -291,9 +294,12 @@ export class DatabaseService {
     const currentUser = await this.getCurrentUser();
     if (!currentUser) throw new Error('No authenticated user');
 
+    const id = uuidv4();
+
     const { data, error } = await supabase
       .from(TABLES.EXPENSES)
       .insert([{
+        id,
         user_id: currentUser.id,
         amount: expense.amount,
         category: expense.category,
@@ -387,9 +393,12 @@ export class DatabaseService {
     const currentUser = await this.getCurrentUser();
     if (!currentUser) throw new Error('No authenticated user');
 
+    const id = uuidv4();
+
     const { data, error } = await supabase
       .from(TABLES.BILLS)
       .insert([{
+        id,
         user_id: currentUser.id,
         name: bill.name,
         amount: bill.amount,
@@ -507,9 +516,12 @@ export class DatabaseService {
     const currentUser = await this.getCurrentUser();
     if (!currentUser) throw new Error('No authenticated user');
 
+    const id = uuidv4();
+
     const { data, error } = await supabase
       .from(TABLES.SAVING_GOALS)
       .insert([{
+        id,
         user_id: currentUser.id,
         name: goal.name,
         target_amount: goal.targetAmount,
