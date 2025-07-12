@@ -3,6 +3,38 @@
 ## Project Scope
 This project is a modern, full-featured personal budget tracker built with React and Supabase. It allows users to manage their incomes, expenses, bills, savings goals, and budgets in a seamless, visually appealing interface. The application is designed for students and individuals who want to track their finances, set goals, and gain insights into their spending habits.
 
+## Tech Stack
+- **React**: Frontend framework for building the user interface and managing state. All UI components, routing, and state management are implemented in React (TypeScript).
+- **TypeScript**: Used throughout the frontend for type safety and maintainability.
+- **Supabase**: Backend-as-a-Service providing authentication, database (PostgreSQL), and API. Used for user management, data storage, and real-time updates.
+- **Tailwind CSS**: Utility-first CSS framework for rapid, consistent, and responsive UI styling.
+- **Vite**: Fast development server and build tool for React projects.
+- **Recharts**: For data visualization (charts and graphs in analytics and dashboard).
+- **Lucide React**: Icon library for modern, consistent icons across the UI.
+
+### Where and How Each Technology is Used
+- **React & TypeScript**: All components in `project/src/components/` and logic in `project/src/` are written in React with TypeScript.
+- **Supabase**: Database and authentication logic is in `project/src/utils/supabase.ts` and `project/src/utils/database.ts`. All data (users, incomes, expenses, bills, goals, categories) is stored in Supabase tables.
+- **Tailwind CSS**: All styling is done using Tailwind utility classes in component files and configured in `tailwind.config.js`.
+- **Vite**: Project is bootstrapped and run using Vite (`vite.config.ts`).
+- **Recharts**: Used in dashboard and analytics components for pie charts and other visualizations.
+- **Lucide React**: Used for icons in navigation, dashboard, and UI elements.
+
+## Methodology
+- **Component-Based Design**: The UI is broken down into reusable, modular React components for maintainability and scalability.
+- **Type Safety**: TypeScript is used throughout to catch errors early and improve code quality.
+- **Separation of Concerns**: Data access and business logic are separated from UI components (see `utils/database.ts` and `utils/calculations.ts`).
+- **Responsive & Accessible UI**: Tailwind CSS ensures the app is responsive and accessible on all devices.
+- **User-Centric Workflow**: Features are designed around real user needs (students, individuals managing budgets), with a focus on ease of use and clarity.
+- **Iterative Development**: Features and UI are improved based on feedback and testing, ensuring a seamless user experience.
+
+## Architecture
+- **Frontend**: Single Page Application (SPA) built with React and TypeScript. All routing and state are managed client-side.
+- **Backend**: Supabase provides a managed PostgreSQL database, authentication, and RESTful API endpoints. No custom backend server is required.
+- **Data Flow**: Components interact with Supabase via service classes in `utils/`, fetching and updating data as needed. State is managed locally in React components.
+- **Authentication**: Handled by Supabase Auth, with user sessions managed client-side.
+- **Deployment**: Can be deployed to any static hosting provider (e.g., Vercel, Netlify) with environment variables for Supabase configuration.
+
 ## Features
 - User authentication (Supabase Auth)
 - Dashboard with monthly stats, recent transactions, and expense breakdowns
