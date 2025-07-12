@@ -79,7 +79,9 @@ export const BillList: React.FC<BillListProps> = ({ bills, onMarkPaid, onDelete 
               size="sm" 
               icon={Trash2}
               onClick={() => onDelete(bill.id)}
-            />
+            >
+              Delete
+            </Button>
           </div>
         </div>
       </div>
