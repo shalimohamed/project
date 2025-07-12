@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Income, Expense, Bill, SavingGoal } from './types';
+import { User, Income, Expense, Bill, SavingGoal, BudgetCategory } from './types';
 import { DatabaseService } from './utils/database';
 import { LoginForm } from './components/auth/LoginForm';
 import { Dashboard } from './components/dashboard/Dashboard';
@@ -22,22 +22,25 @@ function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
   const [savingGoals, setSavingGoals] = useState<SavingGoal[]>([]);
+  const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>([]);
 
   const fetchAllData = async () => {
     if (!currentUser) return;
     
     try {
-      const [incomesData, expensesData, billsData, goalsData] = await Promise.all([
+      const [incomesData, expensesData, billsData, goalsData, categoriesData] = await Promise.all([
         DatabaseService.getIncomes(),
         DatabaseService.getExpenses(),
         DatabaseService.getBills(),
-        DatabaseService.getSavingGoals()
+        DatabaseService.getSavingGoals(),
+        DatabaseService.getBudgetCategories()
       ]);
       
       setIncomes(incomesData);
       setExpenses(expensesData);
       setBills(billsData);
       setSavingGoals(goalsData);
+      setBudgetCategories(categoriesData);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     }
@@ -198,6 +201,7 @@ function App() {
             expenses={expenses} 
             onAddExpense={handleAddExpense}
             onDeleteExpense={handleDeleteExpense}
+            budgetCategories={budgetCategories}
           />
         );
       case 'bills':

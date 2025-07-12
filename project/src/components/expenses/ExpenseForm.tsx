@@ -10,12 +10,14 @@ interface ExpenseFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (expense: Omit<Expense, 'id'>) => void;
+  budgetCategories?: { value: string; label: string }[] | import('../../types').BudgetCategory[];
 }
 
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   isOpen,
   onClose,
-  onSubmit
+  onSubmit,
+  budgetCategories
 }) => {
   const [formData, setFormData] = useState({
     amount: '',
@@ -25,17 +27,26 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
     priority: 1
   });
 
-  const categories = [
-    { value: 'Housing', label: 'Housing' },
-    { value: 'Transportation', label: 'Transportation' },
-    { value: 'Food', label: 'Food' },
-    { value: 'Healthcare', label: 'Healthcare' },
-    { value: 'Entertainment', label: 'Entertainment' },
-    { value: 'Shopping', label: 'Shopping' },
-    { value: 'Utilities', label: 'Utilities' },
-    { value: 'Education', label: 'Education' },
-    { value: 'Other', label: 'Other' }
-  ];
+  let categories: { value: string; label: string }[] = [];
+  if (budgetCategories && Array.isArray(budgetCategories) && budgetCategories.length > 0) {
+    categories = (budgetCategories as any[]).map(cat =>
+      typeof cat === 'string'
+        ? { value: cat, label: cat }
+        : { value: cat.name || cat.value, label: cat.name || cat.label }
+    );
+  } else {
+    categories = [
+      { value: 'Housing', label: 'Housing' },
+      { value: 'Transportation', label: 'Transportation' },
+      { value: 'Food', label: 'Food' },
+      { value: 'Healthcare', label: 'Healthcare' },
+      { value: 'Entertainment', label: 'Entertainment' },
+      { value: 'Shopping', label: 'Shopping' },
+      { value: 'Utilities', label: 'Utilities' },
+      { value: 'Education', label: 'Education' },
+      { value: 'Other', label: 'Other' }
+    ];
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

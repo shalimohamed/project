@@ -88,3 +88,4 @@ CREATE INDEX IF NOT EXISTS idx_bills_user_id ON bills(user_id);
 CREATE INDEX IF NOT EXISTS idx_bills_due_date ON bills(due_date);
 CREATE INDEX IF NOT EXISTS idx_saving_goals_user_id ON saving_goals(user_id);
 CREATE INDEX IF NOT EXISTS idx_budget_categories_user_id ON budget_categories(user_id);
+ALTER TABLE budget_categories ADD COLUMN IF NOT EXISTS income_percentage DECIMAL(5,2) DEFAULT 0;

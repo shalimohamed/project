@@ -10,6 +10,7 @@ interface InputProps {
   disabled?: boolean;
   error?: string;
   className?: string;
+  size?: 'default' | 'compact'; // new prop for compact variant
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -21,18 +22,26 @@ export const Input: React.FC<InputProps> = ({
   required = false,
   disabled = false,
   error,
-  className = ''
+  className = '',
+  size = 'default',
 }) => {
   const inputClasses = `
-    w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-    disabled:bg-gray-50 disabled:text-gray-500
-    ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
+    w-full
+    ${size === 'compact' ? 'px-2 py-1 text-sm rounded-lg' : 'px-4 py-2 text-base rounded-xl'}
+    border border-gray-200
+    bg-white
+    shadow-sm
+    transition-all duration-200
+    focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400
+    placeholder-gray-400
+    disabled:bg-gray-100 disabled:text-gray-400
+    ${type === 'number' ? 'font-semibold tracking-wide' : ''}
+    ${error ? 'border-red-400 focus:ring-red-400 focus:border-red-400' : ''}
     ${className}
   `.trim();
 
   return (
-    <div className="w-full">
+    <div className={`w-full ${size === 'compact' ? '' : 'mb-2'}`}>
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {label}

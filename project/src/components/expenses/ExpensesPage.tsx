@@ -11,12 +11,14 @@ interface ExpensesPageProps {
   expenses: Expense[];
   onAddExpense: (expense: Omit<Expense, 'id'>) => void;
   onDeleteExpense: (id: string) => void;
+  budgetCategories: { value: string; label: string }[] | import('../../types').BudgetCategory[];
 }
 
 export const ExpensesPage: React.FC<ExpensesPageProps> = ({
   expenses,
   onAddExpense,
-  onDeleteExpense
+  onDeleteExpense,
+  budgetCategories
 }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -87,6 +89,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={onAddExpense}
+        budgetCategories={budgetCategories}
       />
     </div>
   );

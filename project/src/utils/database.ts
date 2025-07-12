@@ -262,6 +262,32 @@ export class DatabaseService {
     };
   }
 
+  static async updateIncome(id: string, updates: Partial<Income>): Promise<void> {
+    const updateData: any = {};
+    if (updates.amount !== undefined) updateData.amount = updates.amount;
+    if (updates.source !== undefined) updateData.source = updates.source;
+    if (updates.date !== undefined) updateData.date = updates.date.toISOString();
+    const { error } = await supabase
+      .from(TABLES.INCOMES)
+      .update(updateData)
+      .eq('id', id);
+    if (error) {
+      console.error('Error updating income:', error);
+      throw new Error('Failed to update income');
+    }
+  }
+
+  static async deleteIncome(id: string): Promise<void> {
+    const { error } = await supabase
+      .from(TABLES.INCOMES)
+      .delete()
+      .eq('id', id);
+    if (error) {
+      console.error('Error deleting income:', error);
+      throw new Error('Failed to delete income');
+    }
+  }
+
   // Expense management
   static async getExpenses(): Promise<Expense[]> {
     const currentUser = await this.getCurrentUser();
@@ -602,5 +628,100 @@ export class DatabaseService {
       const expenseDate = new Date(expense.date);
       return expenseDate.getMonth() === month && expenseDate.getFullYear() === year;
     });
+  }
+
+  // Budget categories management
+  static async getBudgetCategories(): Promise<import('../types').BudgetCategory[]> {
+    const currentUser = await this.getCurrentUser();
+    if (!currentUser) return [];
+
+    const { data, error } = await supabase
+      .from(TABLES.BUDGET_CATEGORIES)
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching budget categories:', error);
+      return [];
+    }
+
+    return data.map((cat: any) => ({
+      id: cat.id,
+      name: cat.name,
+      budgetAmount: cat.budget_amount,
+      spentAmount: cat.spent_amount,
+      type: cat.type,
+      color: cat.color,
+      incomePercentage: cat.income_percentage ?? 0
+    }));
+  }
+
+  static async addBudgetCategory(category: Omit<import('../types').BudgetCategory, 'id'>): Promise<import('../types').BudgetCategory> {
+    const currentUser = await this.getCurrentUser();
+    if (!currentUser) throw new Error('No authenticated user');
+
+    const id = uuidv4();
+
+    const { data, error } = await supabase
+      .from(TABLES.BUDGET_CATEGORIES)
+      .insert([{
+        id,
+        user_id: currentUser.id,
+        name: category.name,
+        budget_amount: category.budgetAmount,
+        spent_amount: category.spentAmount,
+        type: category.type,
+        color: category.color,
+        income_percentage: category.incomePercentage ?? 0
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding budget category:', error);
+      throw new Error('Failed to add budget category');
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      budgetAmount: data.budget_amount,
+      spentAmount: data.spent_amount,
+      type: data.type,
+      color: data.color,
+      incomePercentage: data.income_percentage ?? 0
+    };
+  }
+
+  static async updateBudgetCategory(id: string, updates: Partial<import('../types').BudgetCategory>): Promise<void> {
+    const updateData: any = {};
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.budgetAmount !== undefined) updateData.budget_amount = updates.budgetAmount;
+    if (updates.spentAmount !== undefined) updateData.spent_amount = updates.spentAmount;
+    if (updates.type !== undefined) updateData.type = updates.type;
+    if (updates.color !== undefined) updateData.color = updates.color;
+    if (updates.incomePercentage !== undefined) updateData.income_percentage = updates.incomePercentage;
+
+    const { error } = await supabase
+      .from(TABLES.BUDGET_CATEGORIES)
+      .update(updateData)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating budget category:', error);
+      throw new Error('Failed to update budget category');
+    }
+  }
+
+  static async deleteBudgetCategory(id: string): Promise<void> {
+    const { error } = await supabase
+      .from(TABLES.BUDGET_CATEGORIES)
+      .delete()
+      .eq('id', id);
+    if (error) {
+      console.error('Error deleting budget category:', error);
+      throw new Error('Failed to delete budget category');
+    }
   }
 }

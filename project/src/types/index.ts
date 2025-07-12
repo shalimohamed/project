@@ -51,4 +51,5 @@ export interface BudgetCategory {
   spentAmount: number;
   type: 'need' | 'want';
   color: string;
+  incomePercentage: number; // percentage of income allocated to this category
 }
