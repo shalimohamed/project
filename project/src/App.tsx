@@ -238,21 +238,22 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar onLogout={handleLogout} />
-      
-      <div className="flex">
+      <div className="flex flex-1">
         <Sidebar 
           currentTab={currentPage}
           onTabChange={setCurrentPage}
         />
-        
         <main className="flex-1 lg:ml-64 pt-16">
           <div className="p-6">
             {renderCurrentPage()}
           </div>
         </main>
       </div>
+      <footer className="w-full py-4 text-center text-xs text-gray-400 border-t border-gray-200 bg-white">
+        © Developed by Shali Mohammed | Student ID: 669344
+      </footer>
     </div>
   );
 }
