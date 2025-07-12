@@ -2,25 +2,29 @@ import React from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Target } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { CalculationService } from '../../utils/calculations';
-import { Income, Expense, SavingGoal } from '../../types';
+import { Income, Expense, SavingGoal, Bill } from '../../types';
 
 interface DashboardStatsProps {
   incomes: Income[];
   expenses: Expense[];
   savingGoals: SavingGoal[];
+  bills: Bill[];
+  onNavigate?: (page: string) => void;
 }
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({
   incomes,
   expenses,
-  savingGoals
+  savingGoals,
+  bills,
+  onNavigate
 }) => {
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   
   const monthlyIncome = CalculationService.getTotalIncome(incomes, currentMonth, currentYear);
-  const monthlyExpenses = CalculationService.getTotalExpenses(expenses, currentMonth, currentYear);
-  const monthlySavings = CalculationService.calculateSavings(incomes, expenses, currentMonth, currentYear);
+  const monthlyExpenses = CalculationService.getTotalExpensesWithBills(expenses, bills, currentMonth, currentYear);
+  const monthlySavings = monthlyIncome - monthlyExpenses;
   const totalSavings = savingGoals.reduce((total, goal) => total + goal.currentAmount, 0);
 
   const stats = [
@@ -29,28 +33,32 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
       value: CalculationService.formatCurrency(monthlyIncome),
       icon: TrendingUp,
       color: 'text-green-600',
-      bgColor: 'bg-green-50'
+      bgColor: 'bg-green-50',
+      page: 'budget',
     },
     {
       title: 'Monthly Expenses',
       value: CalculationService.formatCurrency(monthlyExpenses),
       icon: TrendingDown,
       color: 'text-red-600',
-      bgColor: 'bg-red-50'
+      bgColor: 'bg-red-50',
+      page: 'expenses',
     },
     {
       title: 'Monthly Savings',
       value: CalculationService.formatCurrency(monthlySavings),
       icon: DollarSign,
       color: monthlySavings >= 0 ? 'text-green-600' : 'text-red-600',
-      bgColor: monthlySavings >= 0 ? 'bg-green-50' : 'bg-red-50'
+      bgColor: monthlySavings >= 0 ? 'bg-green-50' : 'bg-red-50',
+      page: 'budget',
     },
     {
       title: 'Total Savings',
       value: CalculationService.formatCurrency(totalSavings),
       icon: Target,
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
+      bgColor: 'bg-blue-50',
+      page: 'goals',
     }
   ];
 
@@ -59,17 +67,26 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
-          <Card key={index} hover className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+          <div
+            key={index}
+            className="cursor-pointer group"
+            onClick={() => onNavigate && stat.page && onNavigate(stat.page)}
+            tabIndex={0}
+            role="button"
+            aria-label={`Go to ${stat.title}`}
+          >
+            <Card hover className="p-6 group-hover:shadow-lg group-hover:ring-2 group-hover:ring-blue-200 transition-all">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                </div>
+                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                  <Icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
               </div>
-              <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                <Icon className={`w-6 h-6 ${stat.color}`} />
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         );
       })}
     </div>

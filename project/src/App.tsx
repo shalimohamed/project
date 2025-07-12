@@ -194,7 +194,7 @@ function App() {
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard incomes={incomes} expenses={expenses} savingGoals={savingGoals} />;
+        return <Dashboard incomes={incomes} expenses={expenses} savingGoals={savingGoals} bills={bills} onNavigate={setCurrentPage} />;
       case 'expenses':
         return (
           <ExpensesPage 

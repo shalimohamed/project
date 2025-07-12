@@ -10,7 +10,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'expenses', label: 'Expenses', icon: PieChart },
-    //{ id: 'bills', label: 'Bills', icon: CreditCard },
+    { id: 'bills', label: 'Bills', icon: CreditCard },
     { id: 'goals', label: 'Goals', icon: Target },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'budget', label: 'Budget', icon: Calendar }

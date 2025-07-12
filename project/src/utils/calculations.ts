@@ -27,6 +27,19 @@ export class CalculationService {
     return filteredExpenses.reduce((total, expense) => total + expense.amount, 0);
   }
 
+  static getTotalExpensesWithBills(expenses: Expense[], bills: Bill[], month?: number, year?: number): number {
+    const totalExpenses = this.getTotalExpenses(expenses, month, year);
+    let filteredBills = bills.filter(bill => !bill.isPaid);
+    if (month !== undefined && year !== undefined) {
+      filteredBills = filteredBills.filter(bill => {
+        const dueDate = new Date(bill.dueDate);
+        return dueDate.getMonth() === month && dueDate.getFullYear() === year;
+      });
+    }
+    const totalBills = filteredBills.reduce((sum, bill) => sum + bill.amount, 0);
+    return totalExpenses + totalBills;
+  }
+
   static getExpensesByCategory(expenses: Expense[], month?: number, year?: number): Record<string, number> {
     let filteredExpenses = expenses;
     
