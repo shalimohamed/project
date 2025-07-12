@@ -7,11 +7,28 @@ export class DatabaseService {
   static async initialize(): Promise<void> {
     try {
       // Test the connection
-      const { data, error } = await supabase.from(TABLES.USERS).select('count').limit(1);
+      const { error } = await supabase
+        .from(TABLES.USERS)
+        .select('count')
+        .limit(1);
+
       if (error) {
         console.error('Database connection failed:', error);
         throw new Error('Failed to connect to Supabase database');
       }
+
+      // Verify all required tables exist
+      for (const table of Object.values(TABLES)) {
+        const { error: tableError } = await supabase
+          .from(table)
+          .select('count')
+          .limit(1);
+          
+        if (tableError) {
+          throw new Error(`Table ${table} does not exist`);
+        }
+      }
+
       console.log('Database service initialized successfully');
     } catch (error) {
       console.error('Failed to initialize database service:', error);
