@@ -12,6 +12,12 @@ This project is a modern, full-featured personal budget tracker built with React
 - **Recharts**: For data visualization (charts and graphs in analytics and dashboard).
 - **Lucide React**: Icon library for modern, consistent icons across the UI.
 
+### Business Logic
+- **TypeScript Service Classes & Utilities**: All business logic is implemented in the frontend using TypeScript service classes and utility modules:
+  - `DatabaseService` (`project/src/utils/database.ts`): Handles all data access, CRUD operations, user management, and domain-specific rules (e.g., filtering by user, monthly calculations, marking bills as paid/unpaid).
+  - `CalculationService` (`project/src/utils/calculations.ts`): Implements all financial calculations, aggregations, and formatting (e.g., totals, category breakdowns, including unpaid bills in monthly expenses).
+- These classes are used throughout the React components to separate business rules and data processing from UI logic, ensuring maintainability and clarity.
+
 ### Where and How Each Technology is Used
 - **React & TypeScript**: All components in `project/src/components/` and logic in `project/src/` are written in React with TypeScript.
 - **Supabase**: Database and authentication logic is in `project/src/utils/supabase.ts` and `project/src/utils/database.ts`. All data (users, incomes, expenses, bills, goals, categories) is stored in Supabase tables.
