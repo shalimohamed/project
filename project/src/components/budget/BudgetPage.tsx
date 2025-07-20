@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Plus, PlusCircle, DollarSign, Info, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -8,6 +8,7 @@ import { Income, Expense, Bill, BudgetCategory } from '../../types';
 import { CalculationService } from '../../utils/calculations';
 import { DatabaseService } from '../../utils/database';
 import { Select } from '../ui/Select';
+import { CurrencyContext } from '../../context/CurrencyContext';
 
 interface BudgetPageProps {
   incomes: Income[];
@@ -26,6 +27,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
   onDeleteIncome, // <-- add this
   userId
 }) => {
+  const { activeCurrency } = useContext(CurrencyContext);
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [incomeForm, setIncomeForm] = useState({
     amount: '',
@@ -36,7 +38,6 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
     recurrenceDayOfWeek: '1',
     startDate: '',
     endDate: '',
-    currency: 'KES',
   });
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -72,9 +73,6 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
   const monthlyExpenses = CalculationService.getTotalExpensesWithBills(expenses, bills, currentMonth, currentYear);
   const remainingBudget = monthlyIncome - monthlyExpenses;
 
-  // For summary, pick the first income's currency or default to KES
-  const summaryCurrency = incomes.length > 0 ? incomes[0].currency : 'KES';
-
   useEffect(() => {
     setLoadingCategories(true);
     DatabaseService.getBudgetCategories().then((cats) => {
@@ -90,7 +88,6 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
 
   const handleAddIncome = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleAddIncome called with form data:', incomeForm);
     let recurrenceRule = undefined;
     let date = new Date();
     let endDate = undefined;
@@ -119,9 +116,8 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
       type: incomeForm.type as 'salary' | 'recurring' | 'one-time',
       recurrenceRule,
       endDate,
-      currency: incomeForm.currency as 'KES' | 'USD' | 'GBP' | 'EUR',
+      currency: activeCurrency,
     };
-    console.log('Calling onAddIncome with:', incomeData);
     onAddIncome(incomeData);
     setIncomeForm({
       amount: '',
@@ -132,7 +128,6 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
       recurrenceDayOfWeek: '1',
       startDate: '',
       endDate: '',
-      currency: 'KES',
     });
     setIsIncomeModalOpen(false);
   };
@@ -167,7 +162,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Monthly Income</p>
               <p className="text-2xl font-bold text-green-600">
-                {CalculationService.formatCurrency(monthlyIncome, summaryCurrency)}
+                {CalculationService.formatCurrency(monthlyIncome, activeCurrency)}
               </p>
             </div>
             <div className="p-3 bg-green-50 rounded-lg">
@@ -181,7 +176,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Monthly Expenses</p>
               <p className="text-2xl font-bold text-red-600">
-                {CalculationService.formatCurrency(monthlyExpenses, summaryCurrency)}
+                {CalculationService.formatCurrency(monthlyExpenses, activeCurrency)}
               </p>
             </div>
             <div className="p-3 bg-red-50 rounded-lg">
@@ -195,7 +190,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Remaining Budget</p>
               <p className={`text-2xl font-bold ${remainingBudget >= 0 ? 'text-green-600' : 'text-red-600'}`}> 
-                {CalculationService.formatCurrency(remainingBudget, summaryCurrency)}
+                {CalculationService.formatCurrency(remainingBudget, activeCurrency)}
               </p>
             </div>
             <div className={`p-3 rounded-lg ${remainingBudget >= 0 ? 'bg-green-50' : 'bg-red-50'}`}> 
@@ -236,10 +231,10 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
                     <div className="flex items-center gap-2">
                       <div className="text-right">
                         <span className={`font-bold text-lg ${isOverBudget ? 'text-red-600' : 'text-green-600'}`}> 
-                          {CalculationService.formatCurrency(actual, summaryCurrency)}
+                          {CalculationService.formatCurrency(actual, activeCurrency)}
                         </span>
                         <span className="text-xs text-gray-500 ml-2">
-                          / {CalculationService.formatCurrency(recommended, summaryCurrency)}
+                          / {CalculationService.formatCurrency(recommended, activeCurrency)}
                         </span>
                       </div>
                       <button
@@ -276,11 +271,11 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
                     </div>
                     {isOverBudget ? (
                       <span className="ml-2 text-xs text-red-600 font-medium whitespace-nowrap">
-                        Over by {CalculationService.formatCurrency(actual - recommended, summaryCurrency)}
+                        Over by {CalculationService.formatCurrency(actual - recommended, activeCurrency)}
                       </span>
                     ) : (
                       <span className="ml-2 text-xs text-green-600 font-medium whitespace-nowrap">
-                        {recommended - actual > 0 ? `Under by ${CalculationService.formatCurrency(recommended - actual, summaryCurrency)}` : 'On track'}
+                        {recommended - actual > 0 ? `Under by ${CalculationService.formatCurrency(recommended - actual, activeCurrency)}` : 'On track'}
                       </span>
                     )}
                   </div>
@@ -421,18 +416,6 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
               { value: 'recurring', label: 'Recurring' },
               { value: 'one-time', label: 'One-time' }
             ]}
-          />
-          <Select
-            label="Currency"
-            value={incomeForm.currency}
-            onChange={e => setIncomeForm(f => ({ ...f, currency: e.target.value }))}
-            options={[
-              { value: 'KES', label: 'Kenya Shillings (KES)' },
-              { value: 'USD', label: 'US Dollar ($)' },
-              { value: 'GBP', label: 'British Pound (GBP)' },
-              { value: 'EUR', label: 'Euro (EUR)' },
-            ]}
-            required
           />
           <Input
             type="number"

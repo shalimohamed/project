@@ -11,6 +11,7 @@ import { BudgetPage } from './components/budget/BudgetPage';
 import { Navbar } from './components/common/Navbar';
 import { Sidebar } from './components/common/Sidebar';
 import { CurrencyContext } from './context/CurrencyContext';
+import SettingsPage from './components/common/SettingsPage';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -272,6 +273,8 @@ function App() {
             userId={currentUser.id}
           />
         );
+      case 'settings':
+        return <SettingsPage onLogout={handleLogout} />;
       default:
         return <Dashboard incomes={incomes} expenses={expenses} savingGoals={savingGoals} bills={bills} onNavigate={setCurrentPage} />;
     }
@@ -280,7 +283,7 @@ function App() {
   return (
     <CurrencyContext.Provider value={{ activeCurrency, setActiveCurrency }}>
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Navbar onLogout={handleLogout} />
+        <Navbar onLogout={handleLogout} onSettings={() => setCurrentPage('settings')} />
         <div className="flex flex-1">
           <Sidebar 
             currentTab={currentPage}
