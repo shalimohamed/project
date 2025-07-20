@@ -76,7 +76,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) 
               
               <div className="flex items-center space-x-3">
                 <span className="text-lg font-semibold text-red-600">
-                  {CalculationService.formatCurrency(expense.amount)}
+                  {CalculationService.formatCurrency(expense.amount, 'KES')}
                 </span>
                 <div className="flex items-center space-x-2">
                   <Button variant="secondary" size="sm" icon={Edit} />

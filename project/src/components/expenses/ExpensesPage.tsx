@@ -44,7 +44,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Monthly Total</p>
               <p className="text-2xl font-bold text-gray-900">
-                {CalculationService.formatCurrency(monthlyExpenses)}
+                {CalculationService.formatCurrency(monthlyExpenses, 'KES')}
               </p>
             </div>
             <div className="p-3 bg-red-50 rounded-lg">
@@ -73,7 +73,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Daily Average</p>
               <p className="text-2xl font-bold text-gray-900">
-                {CalculationService.formatCurrency(averageDaily)}
+                {CalculationService.formatCurrency(averageDaily, 'KES')}
               </p>
             </div>
             <div className="p-3 bg-green-50 rounded-lg">

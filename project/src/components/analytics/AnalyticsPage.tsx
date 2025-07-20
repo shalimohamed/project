@@ -40,6 +40,9 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 8);
 
+  // Use the most common or first income's currency for income/savings, KES for expenses
+  const summaryCurrency = incomes.length > 0 ? incomes[0].currency : 'KES';
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Analytics</h2>
@@ -52,7 +55,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value) => CalculationService.formatCurrency(value as number)} />
+              <Tooltip formatter={(value) => CalculationService.formatCurrency(value as number, summaryCurrency)} />
               <Legend />
               <Line type="monotone" dataKey="income" stroke="#10B981" strokeWidth={2} name="Income" />
               <Line type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={2} name="Expenses" />
@@ -68,7 +71,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="category" />
               <YAxis />
-              <Tooltip formatter={(value) => CalculationService.formatCurrency(value as number)} />
+              <Tooltip formatter={(value) => CalculationService.formatCurrency(value as number, 'KES')} />
               <Bar dataKey="amount" fill="#3B82F6" />
             </BarChart>
           </ResponsiveContainer>
@@ -83,7 +86,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
               <span className="text-gray-600">Average Monthly Income</span>
               <span className="font-semibold">
                 {CalculationService.formatCurrency(
-                  monthlyData.reduce((sum, data) => sum + data.income, 0) / monthlyData.length
+                  monthlyData.reduce((sum, data) => sum + data.income, 0) / monthlyData.length,
+                  summaryCurrency
                 )}
               </span>
             </div>
@@ -91,7 +95,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
               <span className="text-gray-600">Average Monthly Expenses</span>
               <span className="font-semibold">
                 {CalculationService.formatCurrency(
-                  monthlyData.reduce((sum, data) => sum + data.expenses, 0) / monthlyData.length
+                  monthlyData.reduce((sum, data) => sum + data.expenses, 0) / monthlyData.length,
+                  'KES'
                 )}
               </span>
             </div>
@@ -99,7 +104,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
               <span className="text-gray-600">Average Monthly Savings</span>
               <span className="font-semibold">
                 {CalculationService.formatCurrency(
-                  monthlyData.reduce((sum, data) => sum + data.savings, 0) / monthlyData.length
+                  monthlyData.reduce((sum, data) => sum + data.savings, 0) / monthlyData.length,
+                  summaryCurrency
                 )}
               </span>
             </div>
@@ -113,7 +119,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
               <div key={index} className="flex justify-between items-center">
                 <span className="text-gray-600">{category.category}</span>
                 <span className="font-semibold">
-                  {CalculationService.formatCurrency(category.amount)}
+                  {CalculationService.formatCurrency(category.amount, 'KES')}
                 </span>
               </div>
             ))}
@@ -127,7 +133,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
               <span className="text-gray-600">Total Income</span>
               <span className="font-semibold text-green-600">
                 {CalculationService.formatCurrency(
-                  incomes.reduce((sum, income) => sum + income.amount, 0)
+                  incomes.reduce((sum, income) => sum + income.amount, 0),
+                  summaryCurrency
                 )}
               </span>
             </div>
@@ -135,7 +142,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
               <span className="text-gray-600">Total Expenses</span>
               <span className="font-semibold text-red-600">
                 {CalculationService.formatCurrency(
-                  expenses.reduce((sum, expense) => sum + expense.amount, 0)
+                  expenses.reduce((sum, expense) => sum + expense.amount, 0),
+                  'KES'
                 )}
               </span>
             </div>
@@ -144,7 +152,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ incomes, expenses 
               <span className="font-semibold text-blue-600">
                 {CalculationService.formatCurrency(
                   incomes.reduce((sum, income) => sum + income.amount, 0) -
-                  expenses.reduce((sum, expense) => sum + expense.amount, 0)
+                  expenses.reduce((sum, expense) => sum + expense.amount, 0),
+                  summaryCurrency
                 )}
               </span>
             </div>

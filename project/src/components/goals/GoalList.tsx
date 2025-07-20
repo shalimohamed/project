@@ -19,6 +19,9 @@ export const GoalList: React.FC<GoalListProps> = ({ goals, onAddProgress, onDele
     }
   };
 
+  // Use the most common or first income's currency for all stats
+  const summaryCurrency = goals.length > 0 && goals[0].userId ? 'KES' : 'KES'; // fallback, as goals don't have currency, use KES
+
   return (
     <div className="space-y-6">
       {goals.length === 0 ? (
@@ -98,10 +101,10 @@ export const GoalList: React.FC<GoalListProps> = ({ goals, onAddProgress, onDele
                 
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold text-gray-900">
-                    {CalculationService.formatCurrency(goal.currentAmount)}
+                    {CalculationService.formatCurrency(goal.currentAmount, summaryCurrency)}
                   </span>
                   <span className="text-sm text-gray-500">
-                    of {CalculationService.formatCurrency(goal.targetAmount)}
+                    of {CalculationService.formatCurrency(goal.targetAmount, summaryCurrency)}
                   </span>
                 </div>
               </div>

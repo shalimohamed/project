@@ -27,10 +27,12 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
   const monthlySavings = monthlyIncome - monthlyExpenses;
   const totalSavings = savingGoals.reduce((total, goal) => total + goal.currentAmount, 0);
 
+  // Use the most common or first income's currency for all stats
+  const summaryCurrency = incomes.length > 0 ? incomes[0].currency : 'KES';
   const stats = [
     {
       title: 'Monthly Income',
-      value: CalculationService.formatCurrency(monthlyIncome),
+      value: CalculationService.formatCurrency(monthlyIncome, summaryCurrency),
       icon: TrendingUp,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -38,7 +40,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     },
     {
       title: 'Monthly Expenses',
-      value: CalculationService.formatCurrency(monthlyExpenses),
+      value: CalculationService.formatCurrency(monthlyExpenses, summaryCurrency),
       icon: TrendingDown,
       color: 'text-red-600',
       bgColor: 'bg-red-50',
@@ -46,7 +48,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     },
     {
       title: 'Monthly Savings',
-      value: CalculationService.formatCurrency(monthlySavings),
+      value: CalculationService.formatCurrency(monthlySavings, summaryCurrency),
       icon: DollarSign,
       color: monthlySavings >= 0 ? 'text-green-600' : 'text-red-600',
       bgColor: monthlySavings >= 0 ? 'bg-green-50' : 'bg-red-50',
@@ -54,7 +56,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     },
     {
       title: 'Total Savings',
-      value: CalculationService.formatCurrency(totalSavings),
+      value: CalculationService.formatCurrency(totalSavings, summaryCurrency),
       icon: Target,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',

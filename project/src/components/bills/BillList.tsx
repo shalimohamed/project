@@ -62,7 +62,7 @@ export const BillList: React.FC<BillListProps> = ({ bills, onMarkPaid, onDelete 
         
         <div className="flex items-center space-x-3">
           <span className="text-lg font-semibold text-gray-900">
-            {CalculationService.formatCurrency(bill.amount)}
+            {CalculationService.formatCurrency(bill.amount, 'KES')}
           </span>
           <div className="flex items-center space-x-2">
             {!bill.isPaid && (

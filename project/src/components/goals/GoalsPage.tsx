@@ -27,6 +27,9 @@ export const GoalsPage: React.FC<GoalsPageProps> = ({
   const totalSaved = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
   const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
 
+  // Use the most common or first income's currency for all stats
+  const summaryCurrency = goals.length > 0 && goals[0].userId ? 'KES' : 'KES'; // fallback, as goals don't have currency, use KES
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -66,7 +69,7 @@ export const GoalsPage: React.FC<GoalsPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Total Saved</p>
               <p className="text-2xl font-bold text-gray-900">
-                {CalculationService.formatCurrency(totalSaved)}
+                {CalculationService.formatCurrency(totalSaved, summaryCurrency)}
               </p>
             </div>
             <div className="p-3 bg-purple-50 rounded-lg">
