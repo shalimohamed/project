@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Plus, DollarSign, TrendingUp, Calendar } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -6,6 +6,7 @@ import { ExpenseForm } from './ExpenseForm';
 import { ExpenseList } from './ExpenseList';
 import { Expense } from '../../types';
 import { CalculationService } from '../../utils/calculations';
+import { CurrencyContext } from '../../context/CurrencyContext';
 
 interface ExpensesPageProps {
   expenses: Expense[];
@@ -21,6 +22,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({
   budgetCategories
 }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { activeCurrency } = useContext(CurrencyContext);
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -44,7 +46,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Monthly Total</p>
               <p className="text-2xl font-bold text-gray-900">
-                {CalculationService.formatCurrency(monthlyExpenses, 'KES')}
+                {CalculationService.formatCurrency(monthlyExpenses, activeCurrency)}
               </p>
             </div>
             <div className="p-3 bg-red-50 rounded-lg">
@@ -73,7 +75,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Daily Average</p>
               <p className="text-2xl font-bold text-gray-900">
-                {CalculationService.formatCurrency(averageDaily, 'KES')}
+                {CalculationService.formatCurrency(averageDaily, activeCurrency)}
               </p>
             </div>
             <div className="p-3 bg-green-50 rounded-lg">

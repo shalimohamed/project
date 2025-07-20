@@ -4,6 +4,8 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Expense } from '../../types';
 import { CalculationService } from '../../utils/calculations';
+import { useContext } from 'react';
+import { CurrencyContext } from '../../context/CurrencyContext';
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -11,6 +13,7 @@ interface ExpenseListProps {
 }
 
 export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
+  const { activeCurrency } = useContext(CurrencyContext);
   const sortedExpenses = [...expenses].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -76,7 +79,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) 
               
               <div className="flex items-center space-x-3">
                 <span className="text-lg font-semibold text-red-600">
-                  {CalculationService.formatCurrency(expense.amount, 'KES')}
+                  {CalculationService.formatCurrency(expense.amount, activeCurrency)}
                 </span>
                 <div className="flex items-center space-x-2">
                   <Button variant="secondary" size="sm" icon={Edit} />

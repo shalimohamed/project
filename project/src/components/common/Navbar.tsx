@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { User as UserIcon, LogOut, Settings } from 'lucide-react';
 import { DatabaseService } from '../../utils/database';
+import { CurrencyContext } from '../../context/CurrencyContext';
 
 interface NavbarProps {
   onLogout: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
+  const { activeCurrency, setActiveCurrency } = useContext(CurrencyContext);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,6 +43,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
                     : 'Not logged in'}
               </span>
             </div>
+            <select
+              className="px-2 py-1 border rounded text-sm"
+              value={activeCurrency}
+              onChange={e => setActiveCurrency(e.target.value as any)}
+            >
+              <option value="KES">Kenya Shillings (KES)</option>
+              <option value="USD">US Dollar ($)</option>
+              <option value="GBP">British Pound (GBP)</option>
+              <option value="EUR">Euro (EUR)</option>
+            </select>
             <div className="flex items-center space-x-2">
               <button className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
                 <Settings className="w-5 h-5" />

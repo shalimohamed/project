@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Plus, Target, TrendingUp, Calendar } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -6,6 +6,7 @@ import { GoalForm } from './GoalForm';
 import { GoalList } from './GoalList';
 import { SavingGoal } from '../../types';
 import { CalculationService } from '../../utils/calculations';
+import { CurrencyContext } from '../../context/CurrencyContext';
 
 interface GoalsPageProps {
   goals: SavingGoal[];
@@ -21,6 +22,7 @@ export const GoalsPage: React.FC<GoalsPageProps> = ({
   onDeleteGoal
 }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { activeCurrency } = useContext(CurrencyContext);
 
   const completedGoals = goals.filter(goal => CalculationService.getSavingGoalProgress(goal) >= 100);
   const activeGoals = goals.filter(goal => CalculationService.getSavingGoalProgress(goal) < 100);
@@ -69,7 +71,7 @@ export const GoalsPage: React.FC<GoalsPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Total Saved</p>
               <p className="text-2xl font-bold text-gray-900">
-                {CalculationService.formatCurrency(totalSaved, summaryCurrency)}
+                {CalculationService.formatCurrency(totalSaved, activeCurrency)}
               </p>
             </div>
             <div className="p-3 bg-purple-50 rounded-lg">

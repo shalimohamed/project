@@ -4,6 +4,8 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { SavingGoal } from '../../types';
 import { CalculationService } from '../../utils/calculations';
+import { useContext } from 'react';
+import { CurrencyContext } from '../../context/CurrencyContext';
 
 interface GoalListProps {
   goals: SavingGoal[];
@@ -12,6 +14,7 @@ interface GoalListProps {
 }
 
 export const GoalList: React.FC<GoalListProps> = ({ goals, onAddProgress, onDelete }) => {
+  const { activeCurrency } = useContext(CurrencyContext);
   const handleAddProgress = (goalId: string) => {
     const amount = prompt('Enter amount to add:');
     if (amount && !isNaN(parseFloat(amount))) {
@@ -101,10 +104,10 @@ export const GoalList: React.FC<GoalListProps> = ({ goals, onAddProgress, onDele
                 
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold text-gray-900">
-                    {CalculationService.formatCurrency(goal.currentAmount, summaryCurrency)}
+                    {CalculationService.formatCurrency(goal.currentAmount, activeCurrency)}
                   </span>
                   <span className="text-sm text-gray-500">
-                    of {CalculationService.formatCurrency(goal.targetAmount, summaryCurrency)}
+                    of {CalculationService.formatCurrency(goal.targetAmount, activeCurrency)}
                   </span>
                 </div>
               </div>

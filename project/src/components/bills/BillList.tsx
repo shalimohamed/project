@@ -4,6 +4,8 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Bill } from '../../types';
 import { CalculationService } from '../../utils/calculations';
+import { useContext } from 'react';
+import { CurrencyContext } from '../../context/CurrencyContext';
 
 interface BillListProps {
   bills: Bill[];
@@ -12,6 +14,7 @@ interface BillListProps {
 }
 
 export const BillList: React.FC<BillListProps> = ({ bills, onMarkPaid, onDelete }) => {
+  const { activeCurrency } = useContext(CurrencyContext);
   const upcomingBills = CalculationService.getUpcomingBills(bills);
   const overdueBills = CalculationService.getOverdueBills(bills);
   const paidBills = bills.filter(bill => bill.isPaid);
@@ -62,7 +65,7 @@ export const BillList: React.FC<BillListProps> = ({ bills, onMarkPaid, onDelete 
         
         <div className="flex items-center space-x-3">
           <span className="text-lg font-semibold text-gray-900">
-            {CalculationService.formatCurrency(bill.amount, 'KES')}
+            {CalculationService.formatCurrency(bill.amount, activeCurrency)}
           </span>
           <div className="flex items-center space-x-2">
             {!bill.isPaid && (
