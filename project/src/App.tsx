@@ -196,12 +196,35 @@ function App() {
       case 'dashboard':
         return <Dashboard incomes={incomes} expenses={expenses} savingGoals={savingGoals} bills={bills} onNavigate={setCurrentPage} />;
       case 'expenses':
+        // Merge default categories with custom budget categories, avoiding duplicates
+        const defaultCategories = [
+          { value: 'Housing', label: 'Housing' },
+          { value: 'Transportation', label: 'Transportation' },
+          { value: 'Food', label: 'Food' },
+          { value: 'Healthcare', label: 'Healthcare' },
+          { value: 'Entertainment', label: 'Entertainment' },
+          { value: 'Shopping', label: 'Shopping' },
+          { value: 'Utilities', label: 'Utilities' },
+          { value: 'Education', label: 'Education' },
+          { value: 'Other', label: 'Other' }
+        ];
+        // Convert custom categories to { value, label }
+        const customCategories = budgetCategories.map(cat => ({
+          value: cat.name,
+          label: cat.name
+        }));
+        // Merge and deduplicate by value (case-insensitive)
+        const mergedCategoriesMap = new Map();
+        [...defaultCategories, ...customCategories].forEach(cat => {
+          mergedCategoriesMap.set(cat.value.trim().toLowerCase(), cat);
+        });
+        const mergedCategories = Array.from(mergedCategoriesMap.values());
         return (
           <ExpensesPage 
             expenses={expenses} 
             onAddExpense={handleAddExpense}
             onDeleteExpense={handleDeleteExpense}
-            budgetCategories={budgetCategories}
+            budgetCategories={mergedCategories}
           />
         );
       case 'bills':
@@ -229,11 +252,12 @@ function App() {
           <BudgetPage 
             incomes={incomes}
             expenses={expenses}
+            bills={bills}
             onAddIncome={handleAddIncome}
           />
         );
       default:
-        return <Dashboard incomes={incomes} expenses={expenses} savingGoals={savingGoals} />;
+        return <Dashboard incomes={incomes} expenses={expenses} savingGoals={savingGoals} bills={bills} onNavigate={setCurrentPage} />;
     }
   };
 

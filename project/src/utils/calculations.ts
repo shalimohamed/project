@@ -29,7 +29,7 @@ export class CalculationService {
 
   static getTotalExpensesWithBills(expenses: Expense[], bills: Bill[], month?: number, year?: number): number {
     const totalExpenses = this.getTotalExpenses(expenses, month, year);
-    let filteredBills = bills.filter(bill => !bill.isPaid);
+    let filteredBills = bills.filter(bill => bill.isPaid);
     if (month !== undefined && year !== undefined) {
       filteredBills = filteredBills.filter(bill => {
         const dueDate = new Date(bill.dueDate);

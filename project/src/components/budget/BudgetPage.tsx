@@ -4,19 +4,21 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
-import { Income, Expense, BudgetCategory } from '../../types';
+import { Income, Expense, Bill, BudgetCategory } from '../../types';
 import { CalculationService } from '../../utils/calculations';
 import { DatabaseService } from '../../utils/database';
 
 interface BudgetPageProps {
   incomes: Income[];
   expenses: Expense[];
+  bills: Bill[];
   onAddIncome: (income: Omit<Income, 'id'>) => void;
 }
 
 export const BudgetPage: React.FC<BudgetPageProps> = ({
   incomes,
   expenses,
+  bills,
   onAddIncome
 }) => {
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
@@ -54,7 +56,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
   const currentYear = new Date().getFullYear();
   
   const monthlyIncome = CalculationService.getTotalIncome(incomes, currentMonth, currentYear);
-  const monthlyExpenses = CalculationService.getTotalExpenses(expenses, currentMonth, currentYear);
+  const monthlyExpenses = CalculationService.getTotalExpensesWithBills(expenses, bills, currentMonth, currentYear);
   const remainingBudget = monthlyIncome - monthlyExpenses;
 
   useEffect(() => {
@@ -160,8 +162,10 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
           ) : (
             categories.map((cat) => {
               const recommended = monthlyIncome * (cat.incomePercentage / 100);
-              // Make category matching case-insensitive
-              const actual = expenses.filter(e => e.category.trim().toLowerCase() === cat.name.trim().toLowerCase()).reduce((sum, e) => sum + e.amount, 0);
+              // Make category matching case-insensitive and include both expenses and paid bills
+              const expenseAmount = expenses.filter(e => e.category.trim().toLowerCase() === cat.name.trim().toLowerCase()).reduce((sum, e) => sum + e.amount, 0);
+              const billAmount = bills.filter(b => b.isPaid && b.category.trim().toLowerCase() === cat.name.trim().toLowerCase()).reduce((sum, b) => sum + b.amount, 0);
+              const actual = expenseAmount + billAmount;
               const isOverBudget = actual > recommended;
               const percentage = recommended > 0 ? (actual / recommended) * 100 : 0;
               return (
