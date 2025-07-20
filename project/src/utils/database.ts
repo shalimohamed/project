@@ -226,7 +226,11 @@ export class DatabaseService {
       userId: income.user_id,
       amount: income.amount,
       source: income.source,
-      date: new Date(income.date)
+      date: new Date(income.date),
+      type: income.type,
+      recurrenceRule: income.recurrence_rule ? JSON.parse(income.recurrence_rule) : undefined,
+      endDate: income.end_date ? new Date(income.end_date) : undefined,
+      currency: income.currency || 'KES',
     }));
   }
 
@@ -243,7 +247,11 @@ export class DatabaseService {
         user_id: currentUser.id,
         amount: income.amount,
         source: income.source,
-        date: income.date.toISOString()
+        date: income.date.toISOString(),
+        recurrence_rule: income.recurrenceRule ? JSON.stringify(income.recurrenceRule) : null,
+        end_date: income.endDate ? income.endDate.toISOString() : null,
+        type: income.type,
+        currency: income.currency || 'KES',
       }])
       .select()
       .single();
@@ -258,7 +266,11 @@ export class DatabaseService {
       userId: data.user_id,
       amount: data.amount,
       source: data.source,
-      date: new Date(data.date)
+      date: new Date(data.date),
+      type: data.type,
+      recurrenceRule: data.recurrence_rule ? JSON.parse(data.recurrence_rule) : undefined,
+      endDate: data.end_date ? new Date(data.end_date) : undefined,
+      currency: data.currency || 'KES',
     };
   }
 
@@ -267,6 +279,9 @@ export class DatabaseService {
     if (updates.amount !== undefined) updateData.amount = updates.amount;
     if (updates.source !== undefined) updateData.source = updates.source;
     if (updates.date !== undefined) updateData.date = updates.date.toISOString();
+    if (updates.type !== undefined) updateData.type = updates.type;
+    if (updates.recurrenceRule !== undefined) updateData.recurrence_rule = updates.recurrenceRule ? JSON.stringify(updates.recurrenceRule) : null;
+    if (updates.endDate !== undefined) updateData.end_date = updates.endDate ? updates.endDate.toISOString() : null;
     const { error } = await supabase
       .from(TABLES.INCOMES)
       .update(updateData)

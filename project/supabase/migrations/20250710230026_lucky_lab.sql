@@ -1,5 +1,28 @@
 -- Budget Planner & Expense Tracking System Database Schema
 
+-- Add missing columns to incomes table if not present
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name='incomes' AND column_name='end_date'
+    ) THEN
+        ALTER TABLE incomes ADD COLUMN end_date timestamp NULL;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name='incomes' AND column_name='recurrence_rule'
+    ) THEN
+        ALTER TABLE incomes ADD COLUMN recurrence_rule text NULL;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name='incomes' AND column_name='currency'
+    ) THEN
+        ALTER TABLE incomes ADD COLUMN currency TEXT NOT NULL DEFAULT 'KES';
+    END IF;
+END $$;
+
 -- Users table for authentication
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
@@ -18,6 +41,9 @@ CREATE TABLE IF NOT EXISTS incomes (
   source TEXT NOT NULL,
   date DATETIME DEFAULT CURRENT_TIMESTAMP,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  type TEXT NOT NULL CHECK (type IN ('salary', 'recurring', 'one-time')) DEFAULT 'one-time',
+  recurrence_rule JSON,
+  end_date DATETIME,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

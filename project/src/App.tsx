@@ -92,9 +92,12 @@ function App() {
   };
 
   const handleAddIncome = async (income: Omit<Income, 'id'>) => {
+    console.log('App handleAddIncome called with:', income);
     try {
       await DatabaseService.addIncome(income);
+      console.log('Income added successfully');
       await fetchAllData();
+      console.log('Data refreshed');
     } catch (error) {
       console.error('Failed to add income:', error);
     }
@@ -169,6 +172,15 @@ function App() {
       await fetchAllData();
     } catch (error) {
       console.error('Failed to delete goal:', error);
+    }
+  };
+
+  const handleDeleteIncome = async (id: string) => {
+    try {
+      await DatabaseService.deleteIncome(id);
+      await fetchAllData();
+    } catch (error) {
+      console.error('Failed to delete income:', error);
     }
   };
 
@@ -254,6 +266,8 @@ function App() {
             expenses={expenses}
             bills={bills}
             onAddIncome={handleAddIncome}
+            onDeleteIncome={handleDeleteIncome}
+            userId={currentUser.id}
           />
         );
       default:

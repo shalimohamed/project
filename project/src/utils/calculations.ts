@@ -112,11 +112,29 @@ export class CalculationService {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
-  static formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+  static formatCurrency(amount: number, currency: 'KES' | 'USD' | 'GBP' | 'EUR' = 'KES'): string {
+    let symbol = '';
+    switch (currency) {
+      case 'USD':
+        symbol = '$';
+        break;
+      case 'KES':
+        symbol = 'KES';
+        break;
+      case 'GBP':
+        symbol = '£';
+        break;
+      case 'EUR':
+        symbol = '€';
+        break;
+      default:
+        symbol = currency;
+    }
+    if (currency === 'KES') {
+      return `${symbol} ${amount.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    } else {
+      return `${symbol}${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
   }
 
   static formatDate(date: Date): string {

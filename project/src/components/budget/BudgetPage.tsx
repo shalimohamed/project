@@ -7,24 +7,36 @@ import { Modal } from '../ui/Modal';
 import { Income, Expense, Bill, BudgetCategory } from '../../types';
 import { CalculationService } from '../../utils/calculations';
 import { DatabaseService } from '../../utils/database';
+import { Select } from '../ui/Select';
 
 interface BudgetPageProps {
   incomes: Income[];
   expenses: Expense[];
   bills: Bill[];
   onAddIncome: (income: Omit<Income, 'id'>) => void;
+  onDeleteIncome: (id: string) => void; // <-- add this
+  userId: string;
 }
 
 export const BudgetPage: React.FC<BudgetPageProps> = ({
   incomes,
   expenses,
   bills,
-  onAddIncome
+  onAddIncome,
+  onDeleteIncome, // <-- add this
+  userId
 }) => {
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [incomeForm, setIncomeForm] = useState({
     amount: '',
-    source: ''
+    source: '',
+    type: 'one-time',
+    recurrenceFrequency: 'monthly',
+    recurrenceDayOfMonth: '',
+    recurrenceDayOfWeek: '1',
+    startDate: '',
+    endDate: '',
+    currency: 'KES',
   });
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -51,6 +63,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
   const [deleteIncomeId, setDeleteIncomeId] = useState<string | null>(null);
   const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
   const [deleteCategoryError, setDeleteCategoryError] = useState<string | null>(null);
+  const [deleteIncomeError, setDeleteIncomeError] = useState<string | null>(null);
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -58,6 +71,9 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
   const monthlyIncome = CalculationService.getTotalIncome(incomes, currentMonth, currentYear);
   const monthlyExpenses = CalculationService.getTotalExpensesWithBills(expenses, bills, currentMonth, currentYear);
   const remainingBudget = monthlyIncome - monthlyExpenses;
+
+  // For summary, pick the first income's currency or default to KES
+  const summaryCurrency = incomes.length > 0 ? incomes[0].currency : 'KES';
 
   useEffect(() => {
     setLoadingCategories(true);
@@ -67,15 +83,57 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
     });
   }, []);
 
+  // Find salary income (assume only one active salary)
+  const recurringIncomes = incomes.filter(i => i.type === 'recurring');
+  const oneTimeIncomes = incomes.filter(i => i.type === 'one-time');
+  const salaryIncomes = incomes.filter(i => i.type === 'salary');
+
   const handleAddIncome = (e: React.FormEvent) => {
     e.preventDefault();
-    onAddIncome({
+    console.log('handleAddIncome called with form data:', incomeForm);
+    let recurrenceRule = undefined;
+    let date = new Date();
+    let endDate = undefined;
+    if (incomeForm.type === 'recurring') {
+      recurrenceRule = {
+        frequency: incomeForm.recurrenceFrequency as 'monthly' | 'weekly' | 'daily' | 'yearly',
+        dayOfMonth: incomeForm.recurrenceFrequency === 'monthly' ? Number(incomeForm.recurrenceDayOfMonth) : undefined,
+        dayOfWeek: incomeForm.recurrenceFrequency === 'weekly' ? Number(incomeForm.recurrenceDayOfWeek) : undefined
+      };
+      date = incomeForm.startDate ? new Date(incomeForm.startDate) : new Date();
+      endDate = incomeForm.endDate ? new Date(incomeForm.endDate) : undefined;
+    } else if (incomeForm.type === 'salary') {
+      recurrenceRule = {
+        frequency: 'monthly' as 'monthly',
+        dayOfMonth: Number(incomeForm.recurrenceDayOfMonth)
+      };
+      date = incomeForm.startDate ? new Date(incomeForm.startDate) : new Date();
+    } else {
+      date = new Date();
+    }
+    const incomeData = {
       amount: parseFloat(incomeForm.amount),
       source: incomeForm.source,
-      date: new Date(),
-      userId: '1'
+      date,
+      userId,
+      type: incomeForm.type as 'salary' | 'recurring' | 'one-time',
+      recurrenceRule,
+      endDate,
+      currency: incomeForm.currency as 'KES' | 'USD' | 'GBP' | 'EUR',
+    };
+    console.log('Calling onAddIncome with:', incomeData);
+    onAddIncome(incomeData);
+    setIncomeForm({
+      amount: '',
+      source: '',
+      type: 'one-time',
+      recurrenceFrequency: 'monthly',
+      recurrenceDayOfMonth: '',
+      recurrenceDayOfWeek: '1',
+      startDate: '',
+      endDate: '',
+      currency: 'KES',
     });
-    setIncomeForm({ amount: '', source: '' });
     setIsIncomeModalOpen(false);
   };
 
@@ -109,7 +167,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Monthly Income</p>
               <p className="text-2xl font-bold text-green-600">
-                {CalculationService.formatCurrency(monthlyIncome)}
+                {CalculationService.formatCurrency(monthlyIncome, summaryCurrency)}
               </p>
             </div>
             <div className="p-3 bg-green-50 rounded-lg">
@@ -123,7 +181,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Monthly Expenses</p>
               <p className="text-2xl font-bold text-red-600">
-                {CalculationService.formatCurrency(monthlyExpenses)}
+                {CalculationService.formatCurrency(monthlyExpenses, summaryCurrency)}
               </p>
             </div>
             <div className="p-3 bg-red-50 rounded-lg">
@@ -137,7 +195,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">Remaining Budget</p>
               <p className={`text-2xl font-bold ${remainingBudget >= 0 ? 'text-green-600' : 'text-red-600'}`}> 
-                {CalculationService.formatCurrency(remainingBudget)}
+                {CalculationService.formatCurrency(remainingBudget, summaryCurrency)}
               </p>
             </div>
             <div className={`p-3 rounded-lg ${remainingBudget >= 0 ? 'bg-green-50' : 'bg-red-50'}`}> 
@@ -178,10 +236,10 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
                     <div className="flex items-center gap-2">
                       <div className="text-right">
                         <span className={`font-bold text-lg ${isOverBudget ? 'text-red-600' : 'text-green-600'}`}> 
-                          {CalculationService.formatCurrency(actual)}
+                          {CalculationService.formatCurrency(actual, summaryCurrency)}
                         </span>
                         <span className="text-xs text-gray-500 ml-2">
-                          / {CalculationService.formatCurrency(recommended)}
+                          / {CalculationService.formatCurrency(recommended, summaryCurrency)}
                         </span>
                       </div>
                       <button
@@ -218,11 +276,11 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
                     </div>
                     {isOverBudget ? (
                       <span className="ml-2 text-xs text-red-600 font-medium whitespace-nowrap">
-                        Over by {CalculationService.formatCurrency(actual - recommended)}
+                        Over by {CalculationService.formatCurrency(actual - recommended, summaryCurrency)}
                       </span>
                     ) : (
                       <span className="ml-2 text-xs text-green-600 font-medium whitespace-nowrap">
-                        {recommended - actual > 0 ? `Under by ${CalculationService.formatCurrency(recommended - actual)}` : 'On track'}
+                        {recommended - actual > 0 ? `Under by ${CalculationService.formatCurrency(recommended - actual, summaryCurrency)}` : 'On track'}
                       </span>
                     )}
                   </div>
@@ -282,136 +340,180 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
         </div>
       </Card>
 
+      {/* Income Sources Section */}
       <Card>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Income Sources</h3>
         <div className="space-y-3">
-          {incomes.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">No income sources added yet</p>
-          ) : (
-            incomes.map((income) => (
-              <div key={income.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group relative">
-                <div>
-                  <p className="font-medium text-gray-900">{income.source}</p>
-                  <p className="text-sm text-gray-500">
-                    {CalculationService.formatDate(income.date)}
-                  </p>
-                </div>
-                <span className="text-lg font-semibold text-green-600">
-                  {CalculationService.formatCurrency(income.amount)}
-                </span>
-                <div className="flex items-center gap-2 ml-4">
-                  <button
-                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                    onClick={() => {
-                      setEditIncomeId(income.id);
-                      setEditIncomeForm({ amount: income.amount.toString(), source: income.source });
-                      setEditIncomeError(null);
-                    }}
-                    aria-label="Edit income"
-                    type="button"
-                  >
-                    <Edit className="w-5 h-5 text-gray-500" />
-                  </button>
-                  <button
-                    className="p-1 rounded-full hover:bg-red-100 transition-colors"
-                    onClick={() => setDeleteIncomeId(income.id)}
-                    aria-label="Delete income"
-                    type="button"
-                  >
-                    <Trash2 className="w-5 h-5 text-red-500" />
-                  </button>
-                </div>
-                {/* Edit income modal */}
-                {editIncomeId === income.id && (
-                  <Modal isOpen={true} onClose={() => setEditIncomeId(null)} title={`Edit Income Source`}>
-                    <form
-                      onSubmit={async (e) => {
-                        e.preventDefault();
-                        setEditIncomeSaving(true);
-                        setEditIncomeError(null);
-                        try {
-                          await DatabaseService.updateIncome(income.id, {
-                            amount: parseFloat(editIncomeForm.amount),
-                            source: editIncomeForm.source
-                          });
-                          // Update local state (optional: refetch incomes)
-                          setEditIncomeId(null);
-                        } catch (err: any) {
-                          setEditIncomeError(err?.message || 'Failed to update.');
-                        } finally {
-                          setEditIncomeSaving(false);
-                        }
-                      }}
-                      className="space-y-4"
-                    >
-                      <Input
-                        type="number"
-                        label="Amount"
-                        value={editIncomeForm.amount}
-                        onChange={e => setEditIncomeForm(f => ({ ...f, amount: e.target.value }))}
-                        required
-                      />
-                      <Input
-                        type="text"
-                        label="Source"
-                        value={editIncomeForm.source}
-                        onChange={e => setEditIncomeForm(f => ({ ...f, source: e.target.value }))}
-                        required
-                      />
-                      {editIncomeError && <div className="text-red-600 text-sm">{editIncomeError}</div>}
-                      <div className="flex justify-end gap-2">
-                        <Button variant="secondary" onClick={() => setEditIncomeId(null)} type="button">Cancel</Button>
-                        <Button type="submit" loading={editIncomeSaving}>Save</Button>
-                      </div>
-                    </form>
-                  </Modal>
-                )}
-                {/* Delete income modal */}
-                {deleteIncomeId === income.id && (
-                  <Modal isOpen={true} onClose={() => setDeleteIncomeId(null)} title={`Delete Income Source?`}>
-                    <div className="space-y-4">
-                      <p>Are you sure you want to delete this income source? This cannot be undone.</p>
-                      <div className="flex justify-end gap-2">
-                        <Button variant="secondary" onClick={() => setDeleteIncomeId(null)}>Cancel</Button>
-                        <Button variant="danger" onClick={async () => {
-                          try {
-                            // You need to implement DatabaseService.deleteIncome
-                            await DatabaseService.deleteIncome(income.id);
-                            setDeleteIncomeId(null);
-                          } catch (err: any) {
-                            // Optionally show error
-                          }
-                        }}>Delete</Button>
-                      </div>
-                    </div>
-                  </Modal>
-                )}
+          {/* Salary Incomes */}
+          {salaryIncomes.length > 0 && <div className="font-semibold text-green-700">Salary</div>}
+          {salaryIncomes.map((income) => (
+            <div key={income.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">{income.source}</p>
+                <p className="text-sm text-gray-500">
+                  Every month on day {income.recurrenceRule?.dayOfMonth}
+                </p>
               </div>
-            ))
-          )}
+              <span className="text-lg font-semibold text-green-600">
+                {CalculationService.formatCurrency(income.amount, income.currency)}
+              </span>
+              <button
+                className="ml-2 p-1 rounded hover:bg-red-100"
+                onClick={() => setDeleteIncomeId(income.id)}
+                title="Delete income"
+                type="button"
+              >
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </button>
+            </div>
+          ))}
+          {/* Recurring Incomes */}
+          {recurringIncomes.length > 0 && <div className="font-semibold text-blue-700">Recurring Incomes</div>}
+          {recurringIncomes.map((income) => (
+            <div key={income.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">{income.source}</p>
+                <p className="text-sm text-gray-500">
+                  {income.recurrenceRule?.frequency === 'monthly' && `Every month on day ${income.recurrenceRule.dayOfMonth}`}
+                  {income.recurrenceRule?.frequency === 'weekly' && `Every week on day ${income.recurrenceRule.dayOfWeek}`}
+                  {income.recurrenceRule?.frequency === 'daily' && 'Every day'}
+                </p>
+              </div>
+              <span className="text-lg font-semibold text-green-600">
+                {CalculationService.formatCurrency(income.amount, income.currency)}
+              </span>
+            </div>
+          ))}
+          {/* One-time Incomes */}
+          {oneTimeIncomes.length > 0 && <div className="font-semibold text-gray-700 mt-4">One-time Incomes</div>}
+          {oneTimeIncomes.map((income) => (
+            <div key={income.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">{income.source}</p>
+                <p className="text-sm text-gray-500">
+                  {CalculationService.formatDate(income.date)}
+                </p>
+              </div>
+              <span className="text-lg font-semibold text-green-600">
+                {CalculationService.formatCurrency(income.amount, income.currency)}
+              </span>
+              <button
+                className="ml-2 p-1 rounded hover:bg-red-100"
+                onClick={() => setDeleteIncomeId(income.id)}
+                title="Delete income"
+                type="button"
+              >
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </button>
+            </div>
+          ))}
         </div>
       </Card>
-
+      {/* Add/Edit Income Modal */}
       <Modal isOpen={isIncomeModalOpen} onClose={() => setIsIncomeModalOpen(false)} title="Add Income">
         <form onSubmit={handleAddIncome} className="space-y-4">
+          <Select
+            label="Type"
+            value={incomeForm.type}
+            onChange={e => setIncomeForm(f => ({ ...f, type: e.target.value }))}
+            options={[
+              { value: 'salary', label: 'Salary' },
+              { value: 'recurring', label: 'Recurring' },
+              { value: 'one-time', label: 'One-time' }
+            ]}
+          />
+          <Select
+            label="Currency"
+            value={incomeForm.currency}
+            onChange={e => setIncomeForm(f => ({ ...f, currency: e.target.value }))}
+            options={[
+              { value: 'KES', label: 'Kenya Shillings (KES)' },
+              { value: 'USD', label: 'US Dollar ($)' },
+              { value: 'GBP', label: 'British Pound (GBP)' },
+              { value: 'EUR', label: 'Euro (EUR)' },
+            ]}
+            required
+          />
           <Input
             type="number"
             label="Amount"
             value={incomeForm.amount}
-            onChange={(e) => setIncomeForm({ ...incomeForm, amount: e.target.value })}
-            placeholder="0.00"
+            onChange={e => setIncomeForm(f => ({ ...f, amount: e.target.value }))}
             required
           />
-
           <Input
             type="text"
             label="Source"
             value={incomeForm.source}
-            onChange={(e) => setIncomeForm({ ...incomeForm, source: e.target.value })}
-            placeholder="e.g., Salary, Freelance, etc."
+            onChange={e => setIncomeForm(f => ({ ...f, source: e.target.value }))}
             required
           />
-
+          {/* Recurrence fields */}
+          {incomeForm.type === 'salary' && (
+            <Input
+              type="number"
+              label="Salary Day of Month"
+              value={incomeForm.recurrenceDayOfMonth}
+              onChange={e => setIncomeForm(f => ({ ...f, recurrenceDayOfMonth: e.target.value }))}
+              placeholder="1-31"
+              required
+            />
+          )}
+          {incomeForm.type === 'recurring' && (
+            <>
+              <Select
+                label="Frequency"
+                value={incomeForm.recurrenceFrequency}
+                onChange={e => setIncomeForm(f => ({ ...f, recurrenceFrequency: e.target.value }))}
+                options={[
+                  { value: 'monthly', label: 'Monthly' },
+                  { value: 'weekly', label: 'Weekly' },
+                  { value: 'daily', label: 'Daily' }
+                ]}
+                required
+              />
+              {incomeForm.recurrenceFrequency === 'monthly' && (
+                <Input
+                  type="number"
+                  label="Day of Month"
+                  value={incomeForm.recurrenceDayOfMonth}
+                  onChange={e => setIncomeForm(f => ({ ...f, recurrenceDayOfMonth: e.target.value }))}
+                  placeholder="1-31"
+                  required
+                />
+              )}
+              {incomeForm.recurrenceFrequency === 'weekly' && (
+                <Select
+                  label="Day of Week"
+                  value={incomeForm.recurrenceDayOfWeek}
+                  onChange={e => setIncomeForm(f => ({ ...f, recurrenceDayOfWeek: e.target.value }))}
+                  options={[
+                    { value: '0', label: 'Sunday' },
+                    { value: '1', label: 'Monday' },
+                    { value: '2', label: 'Tuesday' },
+                    { value: '3', label: 'Wednesday' },
+                    { value: '4', label: 'Thursday' },
+                    { value: '5', label: 'Friday' },
+                    { value: '6', label: 'Saturday' }
+                  ]}
+                  required
+                />
+              )}
+              <Input
+                type="date"
+                label="Start Date"
+                value={incomeForm.startDate}
+                onChange={e => setIncomeForm(f => ({ ...f, startDate: e.target.value }))}
+                required
+              />
+              <Input
+                type="date"
+                label="End Date (optional)"
+                value={incomeForm.endDate}
+                onChange={e => setIncomeForm(f => ({ ...f, endDate: e.target.value }))}
+              />
+            </>
+          )}
           <div className="flex justify-end space-x-3 pt-4">
             <Button variant="secondary" onClick={() => setIsIncomeModalOpen(false)}>
               Cancel
@@ -435,7 +537,10 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
             }
             setAddingCategory(true);
             try {
-              const added = await DatabaseService.addBudgetCategory(newCategory);
+              const added = await DatabaseService.addBudgetCategory({
+                ...newCategory,
+                type: newCategory.type as 'need' | 'want'
+              });
               setCategories((prev) => [...prev, added]);
               setIsAddCategoryOpen(false);
               setNewCategory({
@@ -469,19 +574,15 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
             label="Budget Amount (optional)"
             value={isNaN(newCategory.budgetAmount) || newCategory.budgetAmount === 0 ? '' : newCategory.budgetAmount}
             onChange={e => setNewCategory({ ...newCategory, budgetAmount: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-            min={0}
-            size="compact"
+            placeholder="0 or more"
           />
           <Input
             type="number"
             label="% of Income"
             value={isNaN(newCategory.incomePercentage) || newCategory.incomePercentage === 0 ? '' : newCategory.incomePercentage}
             onChange={e => setNewCategory({ ...newCategory, incomePercentage: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-            min={0}
-            max={100}
-            step={0.1}
+            placeholder="0-100"
             required
-            size="compact"
           />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
@@ -495,16 +596,17 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
             </select>
           </div>
           <Input
-            type="color"
-            label="Color"
+            type="text"
+            label="Color (hex)"
             value={newCategory.color}
             onChange={e => setNewCategory({ ...newCategory, color: e.target.value })}
+            placeholder="#3B82F6"
           />
           <div className="flex justify-end space-x-3 pt-4">
             <Button variant="secondary" onClick={() => { setIsAddCategoryOpen(false); setAddCategoryError(null); }} type="button">
               Cancel
             </Button>
-            <Button type="submit" icon={PlusCircle} loading={addingCategory}>
+            <Button type="submit" icon={PlusCircle}>
               Add Budget
             </Button>
           </div>
@@ -525,6 +627,26 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
                   setDeleteCategoryId(null);
                 } catch (err: any) {
                   setDeleteCategoryError(err?.message || 'Failed to delete.');
+                }
+              }}>Delete</Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+      {/* Delete income modal */}
+      {deleteIncomeId && (
+        <Modal isOpen={true} onClose={() => setDeleteIncomeId(null)} title="Delete Income?">
+          <div className="space-y-4">
+            <p>Are you sure you want to delete this income? This cannot be undone.</p>
+            {deleteIncomeError && <div className="text-red-600 text-sm">{deleteIncomeError}</div>}
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setDeleteIncomeId(null)}>Cancel</Button>
+              <Button variant="danger" onClick={async () => {
+                try {
+                  await onDeleteIncome(deleteIncomeId);
+                  setDeleteIncomeId(null);
+                } catch (err: any) {
+                  setDeleteIncomeError(err?.message || 'Failed to delete.');
                 }
               }}>Delete</Button>
             </div>

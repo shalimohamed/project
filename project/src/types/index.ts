@@ -11,6 +11,14 @@ export interface Income {
   source: string;
   date: Date;
   userId: string;
+  type: 'salary' | 'recurring' | 'one-time';
+  recurrenceRule?: {
+    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    dayOfMonth?: number; // for monthly
+    dayOfWeek?: number; // for weekly (0=Sunday)
+  };
+  endDate?: Date;
+  currency: 'KES' | 'USD' | 'GBP' | 'EUR';
 }
 
 export interface Expense {
