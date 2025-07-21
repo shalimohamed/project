@@ -739,4 +739,32 @@ export class DatabaseService {
       throw new Error('Failed to delete budget category');
     }
   }
+
+  // Profile management
+  static async getUserProfile(): Promise<any | null> {
+    const currentUser = await this.getCurrentUser();
+    if (!currentUser) return null;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .single();
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching user profile:', error);
+      return null;
+    }
+    return data || null;
+  }
+
+  static async upsertUserProfile(profile: any): Promise<void> {
+    const currentUser = await this.getCurrentUser();
+    if (!currentUser) throw new Error('No authenticated user');
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ ...profile, user_id: currentUser.id }, { onConflict: 'user_id' });
+    if (error) {
+      console.error('Error upserting user profile:', error);
+      throw new Error('Failed to save user profile');
+    }
+  }
 }

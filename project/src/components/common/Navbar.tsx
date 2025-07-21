@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { User as UserIcon, LogOut, Settings } from 'lucide-react';
 import { DatabaseService } from '../../utils/database';
 import { CurrencyContext } from '../../context/CurrencyContext';
+import { Link } from 'react-router-dom';
 
 interface NavbarProps {
   onLogout: () => void;
@@ -10,6 +11,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onLogout, onSettings }) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,10 +20,26 @@ export const Navbar: React.FC<NavbarProps> = ({ onLogout, onSettings }) => {
       if (isMounted) {
         setCurrentUser(user);
         setLoading(false);
+        if (user) {
+          DatabaseService.getUserProfile().then(profileData => {
+            if (isMounted) setProfile(profileData);
+          });
+        }
       }
     });
     return () => { isMounted = false; };
   }, []);
+
+  let welcomeMsg = 'Not logged in';
+  if (loading) {
+    welcomeMsg = 'Loading...';
+  } else if (currentUser) {
+    if (profile && (profile.prefix || profile.last_name)) {
+      welcomeMsg = `Welcome, ${profile.prefix ? profile.prefix + ' ' : ''}${profile.last_name || ''}`.trim();
+    } else {
+      welcomeMsg = `Welcome, ${currentUser.username}`;
+    }
+  }
 
   return (
     <nav className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
@@ -30,15 +48,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onLogout, onSettings }) => {
       </div>
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
-          <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-100">
+          <Link to="/profile" className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 focus:outline-none">
             <UserIcon className="w-5 h-5 text-blue-500" />
-          </span>
+          </Link>
           <span className="text-xs font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-700">
-            {loading
-              ? 'Loading...'
-              : currentUser
-                ? `Welcome, ${currentUser.username}`
-                : 'Not logged in'}
+            {welcomeMsg}
           </span>
         </div>
         <div className="flex items-center space-x-2">

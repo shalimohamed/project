@@ -12,12 +12,14 @@ import { Navbar } from './components/common/Navbar';
 import { Sidebar } from './components/common/Sidebar';
 import { CurrencyContext } from './context/CurrencyContext';
 import SettingsPage from './components/common/SettingsPage';
+import UserProfilePage from './components/common/UserProfilePage';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 
-function App() {
+function AppContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
   
   // Data state
   const [incomes, setIncomes] = useState<Income[]>([]);
@@ -83,7 +85,6 @@ function App() {
     try {
       await DatabaseService.logout();
       setCurrentUser(null);
-      setCurrentPage('dashboard');
       // Clear data state
       setIncomes([]);
       setExpenses([]);
@@ -206,100 +207,54 @@ function App() {
     );
   }
 
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard incomes={incomes} expenses={expenses} savingGoals={savingGoals} bills={bills} onNavigate={setCurrentPage} />;
-      case 'expenses':
-        // Merge default categories with custom budget categories, avoiding duplicates
-        const defaultCategories = [
-          { value: 'Housing', label: 'Housing' },
-          { value: 'Transportation', label: 'Transportation' },
-          { value: 'Food', label: 'Food' },
-          { value: 'Healthcare', label: 'Healthcare' },
-          { value: 'Entertainment', label: 'Entertainment' },
-          { value: 'Shopping', label: 'Shopping' },
-          { value: 'Utilities', label: 'Utilities' },
-          { value: 'Education', label: 'Education' },
-          { value: 'Other', label: 'Other' }
-        ];
-        // Convert custom categories to { value, label }
-        const customCategories = budgetCategories.map(cat => ({
-          value: cat.name,
-          label: cat.name
-        }));
-        // Merge and deduplicate by value (case-insensitive)
-        const mergedCategoriesMap = new Map();
-        [...defaultCategories, ...customCategories].forEach(cat => {
-          mergedCategoriesMap.set(cat.value.trim().toLowerCase(), cat);
-        });
-        const mergedCategories = Array.from(mergedCategoriesMap.values());
-        return (
-          <ExpensesPage 
-            expenses={expenses} 
-            onAddExpense={handleAddExpense}
-            onDeleteExpense={handleDeleteExpense}
-            budgetCategories={mergedCategories}
-          />
-        );
-      case 'bills':
-        return (
-          <BillsPage 
-            bills={bills}
-            onAddBill={handleAddBill}
-            onMarkPaid={handleMarkBillPaid}
-            onDeleteBill={handleDeleteBill}
-          />
-        );
-      case 'goals':
-        return (
-          <GoalsPage 
-            goals={savingGoals}
-            onAddGoal={handleAddGoal}
-            onAddProgress={handleAddGoalProgress}
-            onDeleteGoal={handleDeleteGoal}
-          />
-        );
-      case 'analytics':
-        return <AnalyticsPage incomes={incomes} expenses={expenses} />;
-      case 'budget':
-        return (
-          <BudgetPage 
-            incomes={incomes}
-            expenses={expenses}
-            bills={bills}
-            onAddIncome={handleAddIncome}
-            onDeleteIncome={handleDeleteIncome}
-            userId={currentUser.id}
-          />
-        );
-      case 'settings':
-        return <SettingsPage onLogout={handleLogout} />;
-      default:
-        return <Dashboard incomes={incomes} expenses={expenses} savingGoals={savingGoals} bills={bills} onNavigate={setCurrentPage} />;
-    }
-  };
+  // Merge default and custom categories for expenses
+  const defaultCategories = [
+    { value: 'Housing', label: 'Housing' },
+    { value: 'Transportation', label: 'Transportation' },
+    { value: 'Food', label: 'Food' },
+    { value: 'Healthcare', label: 'Healthcare' },
+    { value: 'Entertainment', label: 'Entertainment' },
+    { value: 'Shopping', label: 'Shopping' },
+    { value: 'Utilities', label: 'Utilities' },
+    { value: 'Education', label: 'Education' },
+    { value: 'Other', label: 'Other' }
+  ];
+  const customCategories = budgetCategories.map(cat => ({ value: cat.name, label: cat.name }));
+  const mergedCategoriesMap = new Map();
+  [...defaultCategories, ...customCategories].forEach(cat => {
+    mergedCategoriesMap.set(cat.value.trim().toLowerCase(), cat);
+  });
+  const mergedCategories = Array.from(mergedCategoriesMap.values());
 
   return (
     <CurrencyContext.Provider value={{ activeCurrency, setActiveCurrency }}>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Navbar onLogout={handleLogout} onSettings={() => setCurrentPage('settings')} />
-        <div className="flex flex-1">
-          <Sidebar 
-            currentTab={currentPage}
-            onTabChange={setCurrentPage}
-          />
-          <main className="flex-1 lg:ml-64 pt-16">
-            <div className="p-6">
-              {renderCurrentPage()}
-            </div>
+      <div className="min-h-screen bg-gray-50 flex">
+        <Sidebar />
+        <div className="flex-1 flex flex-col min-h-screen">
+          <Navbar onLogout={handleLogout} onSettings={() => navigate('/settings')} />
+          <main className="flex-1 p-4">
+            <Routes>
+              <Route path="/" element={<Dashboard incomes={incomes} expenses={expenses} savingGoals={savingGoals} bills={bills} />} />
+              <Route path="/expenses" element={<ExpensesPage expenses={expenses} onAddExpense={handleAddExpense} onDeleteExpense={handleDeleteExpense} budgetCategories={mergedCategories} />} />
+              <Route path="/bills" element={<BillsPage bills={bills} onAddBill={handleAddBill} onMarkPaid={handleMarkBillPaid} onDeleteBill={handleDeleteBill} />} />
+              <Route path="/goals" element={<GoalsPage goals={savingGoals} onAddGoal={handleAddGoal} onAddProgress={handleAddGoalProgress} onDeleteGoal={handleDeleteGoal} />} />
+              <Route path="/analytics" element={<AnalyticsPage incomes={incomes} expenses={expenses} />} />
+              <Route path="/budget" element={<BudgetPage incomes={incomes} expenses={expenses} bills={bills} onAddIncome={handleAddIncome} onDeleteIncome={handleDeleteIncome} userId={currentUser.id} />} />
+              <Route path="/settings" element={<SettingsPage onLogout={handleLogout} />} />
+              <Route path="/profile" element={<UserProfilePage />} />
+            </Routes>
           </main>
         </div>
-        <footer className="w-full py-4 text-center text-xs text-gray-400 border-t border-gray-200 bg-white">
-          © Developed by Shali Mohammed | Student ID: 669344
-        </footer>
       </div>
     </CurrencyContext.Provider>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 
