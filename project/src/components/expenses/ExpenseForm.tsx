@@ -5,6 +5,7 @@ import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Modal } from '../ui/Modal';
 import { Expense } from '../../types';
+import { defaultExpenseCategories } from '../../types';
 
 interface ExpenseFormProps {
   isOpen: boolean;
@@ -35,17 +36,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         : { value: cat.name || cat.value, label: cat.name || cat.label }
     );
   } else {
-    categories = [
-      { value: 'Housing', label: 'Housing' },
-      { value: 'Transportation', label: 'Transportation' },
-      { value: 'Food', label: 'Food' },
-      { value: 'Healthcare', label: 'Healthcare' },
-      { value: 'Entertainment', label: 'Entertainment' },
-      { value: 'Shopping', label: 'Shopping' },
-      { value: 'Utilities', label: 'Utilities' },
-      { value: 'Education', label: 'Education' },
-      { value: 'Other', label: 'Other' }
-    ];
+    categories = defaultExpenseCategories;
   }
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -2,16 +2,19 @@ import React from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Income, Expense } from '../../types';
+import { CurrencyType } from '../../context/CurrencyContext';
 import { CalculationService } from '../../utils/calculations';
 
 interface RecentTransactionsProps {
   incomes: Income[];
   expenses: Expense[];
+  activeCurrency: CurrencyType;
 }
 
 export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
   incomes,
-  expenses
+  expenses,
+  activeCurrency
 }) => {
   const allTransactions = [
     ...incomes.map(income => ({
@@ -67,7 +70,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                 <p className={`font-semibold ${
                   transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {transaction.type === 'income' ? '+' : '-'}{CalculationService.formatCurrency(transaction.amount)}
+                  {transaction.type === 'income' ? '+' : '-'}{CalculationService.formatCurrency(transaction.amount, activeCurrency)}
                 </p>
                 <p className="text-sm text-gray-500">
                   {CalculationService.formatDate(transaction.date)}

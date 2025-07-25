@@ -9,6 +9,7 @@ import { CalculationService } from '../../utils/calculations';
 import { DatabaseService } from '../../utils/database';
 import { Select } from '../ui/Select';
 import { CurrencyContext } from '../../context/CurrencyContext';
+import { defaultExpenseCategories, categoryColorMap } from '../../types';
 
 interface BudgetPageProps {
   incomes: Income[];
@@ -350,7 +351,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
                 </p>
               </div>
               <span className="text-lg font-semibold text-green-600">
-                {CalculationService.formatCurrency(income.amount, income.currency)}
+                {CalculationService.formatCurrency(income.amount, activeCurrency)}
               </span>
               <button
                 className="ml-2 p-1 rounded hover:bg-red-100"
@@ -375,7 +376,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
                 </p>
               </div>
               <span className="text-lg font-semibold text-green-600">
-                {CalculationService.formatCurrency(income.amount, income.currency)}
+                {CalculationService.formatCurrency(income.amount, activeCurrency)}
               </span>
             </div>
           ))}
@@ -390,7 +391,7 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
                 </p>
               </div>
               <span className="text-lg font-semibold text-green-600">
-                {CalculationService.formatCurrency(income.amount, income.currency)}
+                {CalculationService.formatCurrency(income.amount, activeCurrency)}
               </span>
               <button
                 className="ml-2 p-1 rounded hover:bg-red-100"
@@ -545,26 +546,34 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
           {addCategoryError && (
             <div className="text-red-600 text-sm font-medium">{addCategoryError}</div>
           )}
-          <Input
-            type="text"
+          <Select
             label="Category Name"
             value={newCategory.name}
-            onChange={e => setNewCategory({ ...newCategory, name: e.target.value })}
+            onChange={e => {
+              const name = e.target.value;
+              setNewCategory({
+                ...newCategory,
+                name,
+                color: categoryColorMap[name] || '#6B7280',
+              });
+            }}
+            options={defaultExpenseCategories}
+            placeholder="Select category"
             required
           />
           <Input
             type="number"
-            label="Budget Amount (optional)"
+            label="Budget Amount"
             value={isNaN(newCategory.budgetAmount) || newCategory.budgetAmount === 0 ? '' : newCategory.budgetAmount}
-            onChange={e => setNewCategory({ ...newCategory, budgetAmount: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+            onChange={e => {
+              const budgetAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
+              setNewCategory(nc => ({
+                ...nc,
+                budgetAmount,
+                incomePercentage: monthlyIncome > 0 ? (budgetAmount / monthlyIncome) * 100 : 0
+              }));
+            }}
             placeholder="0 or more"
-          />
-          <Input
-            type="number"
-            label="% of Income"
-            value={isNaN(newCategory.incomePercentage) || newCategory.incomePercentage === 0 ? '' : newCategory.incomePercentage}
-            onChange={e => setNewCategory({ ...newCategory, incomePercentage: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-            placeholder="0-100"
             required
           />
           <div>
@@ -578,13 +587,6 @@ export const BudgetPage: React.FC<BudgetPageProps> = ({
               <option value="want">Want</option>
             </select>
           </div>
-          <Input
-            type="text"
-            label="Color (hex)"
-            value={newCategory.color}
-            onChange={e => setNewCategory({ ...newCategory, color: e.target.value })}
-            placeholder="#3B82F6"
-          />
           <div className="flex justify-end space-x-3 pt-4">
             <Button variant="secondary" onClick={() => { setIsAddCategoryOpen(false); setAddCategoryError(null); }} type="button">
               Cancel

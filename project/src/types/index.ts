@@ -61,3 +61,27 @@ export interface BudgetCategory {
   color: string;
   incomePercentage: number; // percentage of income allocated to this category
 }
+
+export const defaultExpenseCategories = [
+  { value: 'Housing', label: 'Housing' },
+  { value: 'Transportation', label: 'Transportation' },
+  { value: 'Food', label: 'Food' },
+  { value: 'Healthcare', label: 'Healthcare' },
+  { value: 'Entertainment', label: 'Entertainment' },
+  { value: 'Shopping', label: 'Shopping' },
+  { value: 'Utilities', label: 'Utilities' },
+  { value: 'Education', label: 'Education' },
+  { value: 'Other', label: 'Other' }
+];
+
+export const categoryColorMap: Record<string, string> = {
+  Housing: '#3B82F6',         // Blue
+  Transportation: '#F59E42',  // Orange
+  Food: '#10B981',            // Green
+  Healthcare: '#EF4444',      // Red
+  Entertainment: '#A78BFA',   // Purple
+  Shopping: '#F472B6',        // Pink
+  Utilities: '#FBBF24',       // Yellow
+  Education: '#6366F1',       // Indigo
+  Other: '#6B7280'            // Gray
+};

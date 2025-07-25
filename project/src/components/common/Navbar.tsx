@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { User as UserIcon, LogOut, Settings } from 'lucide-react';
 import { DatabaseService } from '../../utils/database';
-import { CurrencyContext } from '../../context/CurrencyContext';
 import { Link } from 'react-router-dom';
 
 interface NavbarProps {
@@ -16,18 +15,32 @@ export const Navbar: React.FC<NavbarProps> = ({ onLogout, onSettings }) => {
 
   useEffect(() => {
     let isMounted = true;
-    DatabaseService.getCurrentUser().then(user => {
-      if (isMounted) {
-        setCurrentUser(user);
-        setLoading(false);
-        if (user) {
-          DatabaseService.getUserProfile().then(profileData => {
-            if (isMounted) setProfile(profileData);
-          });
+    const fetchProfile = () => {
+      DatabaseService.getCurrentUser().then(user => {
+        if (isMounted) {
+          setCurrentUser(user);
+          setLoading(false);
+          if (user) {
+            DatabaseService.getUserProfile().then(profileData => {
+              if (isMounted) setProfile(profileData);
+            });
+          }
         }
-      }
-    });
-    return () => { isMounted = false; };
+      });
+    };
+
+    fetchProfile();
+
+    const handleProfileUpdated = () => {
+      fetchProfile();
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdated);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('profileUpdated', handleProfileUpdated);
+    };
   }, []);
 
   let welcomeMsg = 'Not logged in';

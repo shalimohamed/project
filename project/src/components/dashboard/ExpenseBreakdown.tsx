@@ -2,13 +2,15 @@ import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Card } from '../ui/Card';
 import { Expense } from '../../types';
+import { CurrencyType } from '../../context/CurrencyContext';
 import { CalculationService } from '../../utils/calculations';
 
 interface ExpenseBreakdownProps {
   expenses: Expense[];
+  activeCurrency: CurrencyType;
 }
 
-export const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ expenses }) => {
+export const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ expenses, activeCurrency }) => {
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   
@@ -45,7 +47,7 @@ export const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ expenses }) 
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => CalculationService.formatCurrency(value as number)} />
+              <Tooltip formatter={(value) => CalculationService.formatCurrency(value as number, activeCurrency)} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -69,7 +71,7 @@ export const ExpenseBreakdown: React.FC<ExpenseBreakdownProps> = ({ expenses }) 
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="font-medium text-gray-900">{item.category}</span>
                   <span className="text-red-600 font-semibold">
-                    {CalculationService.formatCurrency(item.amount)}
+                    {CalculationService.formatCurrency(item.amount, activeCurrency)}
                   </span>
                 </div>
               ))

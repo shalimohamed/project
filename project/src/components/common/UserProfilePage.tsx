@@ -102,6 +102,7 @@ export const UserProfilePage: React.FC = () => {
       await DatabaseService.upsertUserProfile(mapProfileToBackend(data));
       setProfile(data);
       setEditing(false);
+      window.dispatchEvent(new Event('profileUpdated'));
     } catch (err) {
       setError('Failed to save profile');
     } finally {

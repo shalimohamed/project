@@ -5,8 +5,8 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 // Create client - will throw error if env vars are missing
 export const supabase = createClient(
-  supabaseUrl!,
-  supabaseAnonKey!
+  supabaseUrl,
+  supabaseAnonKey
 );
 
 // Database table names

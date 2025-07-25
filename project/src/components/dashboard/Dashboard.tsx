@@ -4,6 +4,9 @@ import { DashboardStats } from './DashboardStats';
 import { RecentTransactions } from './RecentTransactions';
 import { ExpenseBreakdown } from './ExpenseBreakdown';
 import { AlertTriangle, Calendar } from 'lucide-react';
+import { useContext } from 'react';
+import { CurrencyContext } from '../../context/CurrencyContext';
+import { CalculationService } from '../../utils/calculations';
 
 interface DashboardProps {
   incomes: Income[];
@@ -20,6 +23,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   bills,
   onNavigate
 }) => {
+  const { activeCurrency } = useContext(CurrencyContext);
   const handleNavigate = (page: string) => {
     if (onNavigate) onNavigate(page);
   };
@@ -69,7 +73,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     )}
                     <span className="text-xs text-gray-500 ml-2">Due: {dueDate.toLocaleDateString()}</span>
                   </div>
-                  <span className="text-base font-semibold text-gray-900">${bill.amount.toFixed(2)}</span>
+                  <span className="text-base font-semibold text-gray-900">{CalculationService.formatCurrency(bill.amount, activeCurrency)}</span>
                 </div>
               );
             })
@@ -78,9 +82,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentTransactions incomes={incomes} expenses={expenses} />
+        <RecentTransactions incomes={incomes} expenses={expenses} activeCurrency={activeCurrency} />
         <div className="lg:col-span-1">
-          <ExpenseBreakdown expenses={expenses} />
+          <ExpenseBreakdown expenses={expenses} activeCurrency={activeCurrency} />
         </div>
       </div>
     </div>
